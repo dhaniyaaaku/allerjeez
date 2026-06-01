@@ -1,4 +1,6 @@
-# Ingredient Safety Analyser — Living Project Spec
+# Allerjeez — Living Project Spec
+
+(Working title: "Ingredient Safety Analyser". Brand name: **Allerjeez** — pun on "allergy" + "jeez", capturing the user moment of discovering what's actually in their food.)
 
 This file is the single source of truth for the project's scope, decisions, and rationale.
 Update it whenever scope, stack, or strategy changes. Commit it to Git alongside code.

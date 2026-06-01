@@ -7,9 +7,9 @@ For spec and rationale, see `PROJECT.md`. For code history, use `git log`.
 
 ---
 
-## 2026-06-01 — Day 1 (in progress)
+## 2026-06-01 — Day 1 (DONE)
 
-### Status: setup phase, no code committed yet
+### Status: complete. App scaffolded, FastAPI verified locally, code pushed to GitHub.
 
 ### Done
 - Verified Python 3.13.0 installed
@@ -20,16 +20,20 @@ For spec and rationale, see `PROJECT.md`. For code history, use `git log`.
 - Installed `uv` 0.11.17 package manager
 - Created project folder: `C:\Users\dhany\Projects\ingredient-safety`
 - Ran `uv init --app --python 3.13`
-- Created initial `pyproject.toml`
-- Added deps via `uv add`: `fastapi`, `uvicorn[standard]`, `pydantic-settings`
+- Added runtime deps via `uv add`: `fastapi`, `uvicorn[standard]`, `pydantic-settings`
 - Added dev dep via `uv add --dev`: `ruff`
 - `uv.lock` generated, `.venv` created
-- Saved project memory + this PROGRESS.md + PROJECT.md spec
-
-### In progress
-- Day 1 step 2.6: replace placeholder `main.py` with FastAPI hello-world app
-- Then: verify `uv run uvicorn main:app --reload` serves the endpoints
-- Then: initialize Git, first commit, push to GitHub
+- Extended `.gitignore` for env files, IDE, OS junk, test/coverage artifacts, local data
+- Replaced placeholder `main.py` with FastAPI app (root + /health endpoints)
+- Verified `uv run uvicorn main:app --reload` serves all endpoints (/, /health, /docs)
+- Swagger UI at /docs verified
+- Configured Git identity: `dhaniyaaaku` / `karadhanya@gmail.com`
+- First commit: `3abc3c0` — "Initial scaffold: FastAPI hello world + project spec"
+- Renamed branch `master` → `main`
+- Picked brand name: **Allerjeez** (pun on "allergy" + "jeez")
+- Created GitHub repo: https://github.com/dhaniyaaaku/allerjeez
+- Connected `origin`, pushed first commit (main branch)
+- Saved persistent memory + PROJECT.md + this PROGRESS.md
 
 ### Next (Day 2)
 - Sign up for Neon Postgres free tier
@@ -40,7 +44,10 @@ For spec and rationale, see `PROJECT.md`. For code history, use `git log`.
 
 ### Decisions made today
 - Per-user Docker install (solo developer use)
-- Project lives at `C:\Users\dhany\Projects\ingredient-safety`
+- Project folder: `C:\Users\dhany\Projects\ingredient-safety`
+- Brand name: **Allerjeez** (memorable, recruiter conversation-starter)
+- GitHub repo name: `allerjeez` (brand), with descriptive description for searchability
+- Email used for Git commits: karadhanya@gmail.com (Dhanya's own, NOT Saikanth's — Saikanth shares the Claude subscription but is unrelated to this project)
 - Confirmed scope cuts: OAuth → email-only, no Alembic, no mypy/pre-commit/structlog, single-stage Dockerfile
 
 ### Blockers / open questions
@@ -48,3 +55,4 @@ For spec and rationale, see `PROJECT.md`. For code history, use `git log`.
 
 ### Notes
 - Persistent memory + PROJECT.md + this PROGRESS.md set up so future Claude sessions can pick up the project mid-build without losing context
+- LF/CRLF warnings on Windows are harmless; Git auto-converts line endings
