@@ -1,0 +1,76 @@
+canonical_name,aliases,e_number,additive_subcategory,common_concerns,notes,source_url
+curcumin,turmeric-extract,E100,colorant,,Natural yellow colorant from turmeric. Generally considered safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+riboflavin,vitamin-b2,E101,colorant,,Natural yellow colorant; also vitamin B2.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+tartrazine,fd-c-yellow-5,E102,colorant,"hyperactivity-warning-required-in-eu;may-trigger-asthma","Synthetic yellow azo dye. EU requires hyperactivity warning. Banned in some countries.",https://www.efsa.europa.eu/en/efsajournal/pub/1331
+quinoline-yellow,,E104,colorant,"hyperactivity-warning-required-in-eu;banned-in-us","Synthetic yellow dye. EU requires hyperactivity warning. Not approved in US foods.",https://www.efsa.europa.eu/en/efsajournal/pub/1329
+sunset-yellow-fcf,"fd-c-yellow-6;orange-yellow-s",E110,colorant,"hyperactivity-warning-required-in-eu","Synthetic orange azo dye. EU requires hyperactivity warning.",https://www.efsa.europa.eu/en/efsajournal/pub/1330
+cochineal,"carmine;carminic-acid",E120,colorant,"not-vegetarian-vegan;insect-derived","Natural red colorant from cochineal insects. Not suitable for vegetarians/vegans.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+carmoisine,azorubine,E122,colorant,"hyperactivity-warning-required-in-eu;banned-in-us-japan","Synthetic red azo dye. EU requires hyperactivity warning. Banned in US, Japan, Norway.",https://www.efsa.europa.eu/en/efsajournal/pub/1332
+amaranth,fd-c-red-2,E123,colorant,"banned-in-us-since-1976","Synthetic red dye. Banned in US since 1976 due to cancer concerns. Still approved in EU.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+ponceau-4r,cochineal-red-a,E124,colorant,"hyperactivity-warning-required-in-eu;banned-in-us-norway","Synthetic red azo dye. EU requires hyperactivity warning.",https://www.efsa.europa.eu/en/efsajournal/pub/1328
+allura-red-ac,fd-c-red-40,E129,colorant,"hyperactivity-warning-required-in-eu","Synthetic red azo dye. EU requires hyperactivity warning.",https://www.efsa.europa.eu/en/efsajournal/pub/1327
+brilliant-blue-fcf,fd-c-blue-1,E133,colorant,,Synthetic blue dye. Generally considered safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+indigo-carmine,fd-c-blue-2,E132,colorant,,Synthetic blue dye. Generally considered safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+caramel-color-plain,e150a,E150a,colorant,,Plain caramel coloring (Class I). Generally considered safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+caramel-color-caustic-sulfite,e150b,E150b,colorant,,Caustic sulfite caramel (Class II). Generally considered safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+vegetable-carbon,e153,E153,colorant,,Vegetable carbon black colorant. Approved in EU.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+beta-carotene,e160a,E160a,colorant,,Natural orange colorant; also pro-vitamin A.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+annatto,bixin,E160b,colorant,"can-cause-allergic-reactions","Natural orange-red colorant from seeds. Can cause allergic reactions in sensitive people.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+paprika-extract,capsanthin,E160c,colorant,,Natural red-orange colorant from paprika.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+lycopene,e160d,E160d,colorant,,Natural red colorant from tomatoes.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+sorbic-acid,e200,E200,preservative,,Preservative. Generally considered safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+sodium-sorbate,e201,E201,preservative,,Sorbic acid salt preservative.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+potassium-sorbate,e202,E202,preservative,,Common preservative; generally safe at typical doses.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+benzoic-acid,e210,E210,preservative,,"Preservative. Combined with vitamin C in acidic drinks can form benzene (very low levels).",https://www.efsa.europa.eu/en/topics/topic/food-additives
+sodium-benzoate,e211,E211,preservative,"can-form-benzene-with-ascorbic-acid","Common preservative. With vitamin C in acidic drinks can form trace benzene.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+sulphur-dioxide,e220,E220,preservative,"asthma-trigger;allergen-declarable-above-10ppm","Preservative for dried fruits, wine. Must be declared above 10ppm. Asthma trigger.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+sodium-sulfite,e221,E221,preservative,"asthma-trigger;allergen-declarable","Sulphite preservative. Asthma trigger in sensitive people.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+sodium-metabisulfite,e223,E223,preservative,"asthma-trigger;allergen-declarable","Sulphite preservative widely used in wine, dried fruits. Asthma trigger.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+potassium-metabisulfite,e224,E224,preservative,"asthma-trigger;allergen-declarable","Sulphite preservative. Asthma trigger.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+sodium-nitrite,e250,E250,preservative,"forms-nitrosamines;cured-meat-additive;iarc-2a-in-context","Used in cured meats. Group 2A under conditions of endogenous nitrosation.",https://monographs.iarc.who.int/agents-classified-by-the-iarc/
+sodium-nitrate,e251,E251,preservative,"converts-to-nitrite;forms-nitrosamines;iarc-2a-in-context","Cured meat additive. Converts to nitrite. Group 2A under conditions of endogenous nitrosation.",https://monographs.iarc.who.int/agents-classified-by-the-iarc/
+acetic-acid,e260,E260,acidifier,,Vinegar. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+lactic-acid,e270,E270,acidifier,,Natural acid found in dairy. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+ascorbic-acid,"vitamin-c;e300",E300,antioxidant,,Vitamin C. Common antioxidant. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+sodium-ascorbate,e301,E301,antioxidant,,Sodium salt of vitamin C.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+tocopherols,vitamin-e,E306,antioxidant,,Natural vitamin E antioxidants.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+butylated-hydroxyanisole,"bha;e320",E320,antioxidant,"iarc-2b;banned-in-eu-foods-since-1996","Synthetic antioxidant. IARC Group 2B. Banned in EU foods since 1996.",https://monographs.iarc.who.int/agents-classified-by-the-iarc/
+butylated-hydroxytoluene,"bht;e321",E321,antioxidant,"controversial;some-countries-restrict","Synthetic antioxidant. Controversial. Restricted in some countries.",https://www.efsa.europa.eu/en/efsajournal/pub/2392
+citric-acid,e330,E330,acidifier,,Very common food acid. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+sodium-citrate,e331,E331,acidifier,,Salt of citric acid. Common buffering agent.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+phosphoric-acid,e338,E338,acidifier,"linked-to-bone-mineral-density-concerns","Used in colas. Some studies link high cola intake to bone mineral density loss.",https://www.efsa.europa.eu/en/efsajournal/pub/5674
+soy-lecithin,"lecithin-soya;e322",E322,emulsifier,"contains-soy-allergen","Emulsifier. Usually from soy (allergen). Sometimes from sunflower or egg.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+mono-and-diglycerides,e471,E471,emulsifier,,Common emulsifier in baked goods. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+glycerin,"glycerol;e422",E422,sweetener,,Sugar alcohol. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+xanthan-gum,e415,E415,thickener,,Common thickener. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+guar-gum,e412,E412,thickener,,Natural plant thickener.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+carrageenan,e407,E407,thickener,"controversial;may-cause-gut-inflammation","Seaweed extract thickener. Some studies suggest inflammatory effects.",https://www.efsa.europa.eu/en/efsajournal/pub/5238
+agar-agar,e406,E406,thickener,,Seaweed-based thickener. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+pectin,e440,E440,thickener,,Natural plant thickener. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+gum-arabic,"acacia-gum;e414",E414,thickener,,Natural gum from acacia tree. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+sodium-bicarbonate,"baking-soda;e500",E500,raising-agent,,Baking soda. Safe at culinary doses.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+ammonium-carbonate,e503,E503,raising-agent,,Raising agent. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+potassium-bromate,e924,E924,flour-treatment,"banned-in-eu-uk-canada-india;iarc-2b","Flour improver. Banned in EU, UK, Canada, India. IARC Group 2B.",https://monographs.iarc.who.int/agents-classified-by-the-iarc/
+azodicarbonamide,"adc;e927a",E927a,flour-treatment,"banned-in-eu-australia;respiratory-irritant","Flour treatment / dough conditioner. Banned in EU and Australia.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+monosodium-glutamate,"msg;e621",E621,flavor-enhancer,"controversial;may-cause-headaches-in-sensitive-people","Flavor enhancer. FDA classifies as GRAS but some report headaches/flushing.",https://www.fda.gov/food/food-additives-petitions/questions-and-answers-monosodium-glutamate-msg
+disodium-inosinate,e631,E631,flavor-enhancer,"often-paired-with-msg","Flavor enhancer; usually paired with MSG.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+disodium-guanylate,e627,E627,flavor-enhancer,"often-paired-with-msg","Flavor enhancer; usually paired with MSG.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+aspartame,"e951;nutrasweet;equal",E951,sweetener,"iarc-2b-2023;not-suitable-for-pku","Artificial sweetener. IARC Group 2B (2023). Contains phenylalanine; PKU patients must avoid.",https://www.iarc.who.int/news-events/aspartame-hazard-and-risk-assessment-results-released/
+acesulfame-potassium,"ace-k;e950",E950,sweetener,,Artificial sweetener. Generally considered safe at typical intake.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+sucralose,e955,E955,sweetener,"recent-concerns-about-baking-effects","Artificial sweetener. Some recent concerns about effects when heated.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+saccharin,e954,E954,sweetener,"iarc-group-3","Artificial sweetener. IARC Group 3 (not classifiable as carcinogen).",https://monographs.iarc.who.int/agents-classified-by-the-iarc/
+steviol-glycosides,"stevia;e960",E960,sweetener,,Plant-derived sweetener. Generally considered safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+sorbitol,e420,E420,sweetener,"laxative-effect-at-high-doses","Sugar alcohol. Can cause diarrhea at high doses.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+xylitol,e967,E967,sweetener,"toxic-to-dogs","Sugar alcohol. Safe for humans but toxic to dogs.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+mannitol,e421,E421,sweetener,"laxative-effect-at-high-doses","Sugar alcohol. Laxative at high doses.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+maltitol,e965,E965,sweetener,"laxative-effect-at-high-doses","Sugar alcohol. Laxative at high doses.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+erythritol,e968,E968,sweetener,"recent-cardiovascular-concerns","Sugar alcohol. Recent studies link high blood levels to cardiovascular events.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+titanium-dioxide,"tio2;e171",E171,colorant,"banned-in-eu-foods-since-2022;iarc-2b-inhaled","White colorant. Banned in EU foods since 2022. IARC Group 2B (inhaled form).",https://www.efsa.europa.eu/en/efsajournal/pub/6585
+silicon-dioxide,"silica;e551",E551,anti-caking,,Anti-caking agent in powdered foods. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+calcium-silicate,e552,E552,anti-caking,,Anti-caking agent. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+sodium-aluminosilicate,e554,E554,anti-caking,"aluminum-content-concerns","Anti-caking agent. Some concerns about aluminum exposure.",https://www.efsa.europa.eu/en/topics/topic/food-additives
+modified-starch,e1400,E1400,thickener,,Generic modified starch. Generally safe.,https://www.efsa.europa.eu/en/topics/topic/food-additives
+maltodextrin,,,carbohydrate,"high-glycemic-index","Refined starch. High GI; may spike blood sugar more than sugar.",https://www.fda.gov/food/food-additives-petitions/food-additive-status-list
+high-fructose-corn-syrup,"hfcs;corn-syrup-high-fructose;glucose-fructose-syrup",,sweetener,"linked-to-obesity-and-fatty-liver-disease","Industrial sweetener. Heavily linked to metabolic disease in epidemiological studies.",https://www.fda.gov/food/food-additives-petitions/high-fructose-corn-syrup-questions-and-answers
+palm-oil,"palm-fat;palm-kernel-oil",,fat,"high-saturated-fat;sustainability-concerns","High in saturated fat. Major deforestation driver in SE Asia.",https://www.who.int/news-room/fact-sheets/detail/healthy-diet
+hydrogenated-vegetable-oil,"partially-hydrogenated-vegetable-oil;pho;trans-fat",,fat,"contains-trans-fats;banned-in-many-countries","Source of trans fats. Banned or restricted in many countries.",https://www.who.int/news-room/fact-sheets/detail/healthy-diet
