@@ -6,10 +6,12 @@ Single public function: extract_ingredients_from_image(image_bytes, mime_type)
 
 from __future__ import annotations
 
+import asyncio
 import io
 import logging
 
 from google import genai
+from google.genai import errors as genai_errors
 from google.genai import types
 from PIL import Image, UnidentifiedImageError
 
@@ -19,6 +21,10 @@ from app.schemas.vision import ExtractedIngredients
 logger = logging.getLogger(__name__)
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5 MB
+
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+MAX_RETRIES = 4
+BASE_BACKOFF_SECONDS = 2.0
 
 EXTRACTION_PROMPT = """You are an ingredient list extractor for a food safety app.
 
@@ -82,18 +88,39 @@ async def extract_ingredients_from_image(
     _validate_image(image_bytes, mime_type)
 
     client = _get_client()
-    response = await client.aio.models.generate_content(
-        model=settings.gemini_vision_model,
-        contents=[
-            types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-            EXTRACTION_PROMPT,
-        ],
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=ExtractedIngredients,
-            temperature=0.0,
-        ),
-    )
+    last_error: Exception | None = None
+    response = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            response = await client.aio.models.generate_content(
+                model=settings.gemini_vision_model,
+                contents=[
+                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                    EXTRACTION_PROMPT,
+                ],
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=ExtractedIngredients,
+                    temperature=0.0,
+                ),
+            )
+            break
+        except genai_errors.APIError as exc:
+            last_error = exc
+            code = getattr(exc, "code", None)
+            if code not in RETRYABLE_STATUS_CODES or attempt == MAX_RETRIES - 1:
+                raise
+            wait = BASE_BACKOFF_SECONDS * (2**attempt)
+            logger.warning(
+                "Gemini transient error (status %s), retry %d/%d in %.1fs",
+                code, attempt + 1, MAX_RETRIES, wait,
+            )
+            await asyncio.sleep(wait)
+
+    if response is None:
+        raise RuntimeError(
+            f"Gemini exhausted retries: {last_error!r}"
+        )
 
     if response.parsed is None:
         raise RuntimeError(

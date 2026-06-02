@@ -13,7 +13,15 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
 COPY app/ ./app/
+COPY frontend/ ./frontend/
+COPY data/ ./data/
+COPY scripts/ ./scripts/
+COPY start.sh ./
 
-EXPOSE 8000
+RUN chmod +x ./start.sh
 
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Streamlit binds to $PORT (Render's required port).
+# FastAPI runs internally on 8000.
+EXPOSE 8080
+
+CMD ["./start.sh"]
