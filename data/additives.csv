@@ -74,3 +74,23 @@ maltodextrin,,,carbohydrate,"high-glycemic-index","Refined starch. High GI; may 
 high-fructose-corn-syrup,"hfcs;corn-syrup-high-fructose;glucose-fructose-syrup",,sweetener,"linked-to-obesity-and-fatty-liver-disease","Industrial sweetener. Heavily linked to metabolic disease in epidemiological studies.",https://www.fda.gov/food/food-additives-petitions/high-fructose-corn-syrup-questions-and-answers
 palm-oil,"palm-fat;palm-kernel-oil",,fat,"high-saturated-fat;sustainability-concerns","High in saturated fat. Major deforestation driver in SE Asia.",https://www.who.int/news-room/fact-sheets/detail/healthy-diet
 hydrogenated-vegetable-oil,"partially-hydrogenated-vegetable-oil;pho;trans-fat",,fat,"contains-trans-fats;banned-in-many-countries","Source of trans fats. Banned or restricted in many countries.",https://www.who.int/news-room/fact-sheets/detail/healthy-diet
+sugar,"sucrose;cane-sugar;refined-sugar;white-sugar;chini",,common-food,,"Common sweetener. No additive safety flag.",
+glucose-syrup,"corn-syrup;glucose;dextrose-syrup",,common-food,,"Common sweetener / texture agent. No additive safety flag.",
+dextrose,"d-glucose;corn-sugar;grape-sugar",,common-food,,"Form of glucose. Common sweetener. No additive safety flag.",
+fructose,"fruit-sugar;levulose",,common-food,,"Form of sugar. No additive safety flag.",
+salt,"sodium-chloride;iodized-salt;table-salt;sea-salt;rock-salt;namak",,common-food,,"Sodium chloride. Excess intake is a hypertension concern but no additive flag.",
+cocoa-butter,"theobroma-oil",,common-food,,"Fat from cocoa beans. Used in chocolate and cosmetics. No additive safety flag.",
+cocoa-solids,"cocoa-mass;cocoa-liquor;chocolate-liquor;cocoa-powder",,common-food,,"Non-fat solids from cocoa beans. No additive safety flag.",
+ethyl-vanillin,"vanillin-derivative",,flavoring,,"Synthetic vanilla flavor compound (about 3x stronger than vanillin). Generally considered safe.",
+vanillin,"vanilla-flavor;artificial-vanilla",,flavoring,,"Synthetic vanilla flavor. Generally considered safe.",
+lecithin,"phospholipid;phosphatidylcholine",,emulsifier,,"Emulsifier; often sunflower-derived. Generally considered safe.",
+wheat-flour,"maida;atta;all-purpose-flour;refined-flour",,common-food,,"Common flour. Contains gluten and wheat allergens; separately flagged.",
+rice,"basmati;jasmine-rice;brown-rice;chawal",,common-food,,"Common grain.",
+oats,"rolled-oats;oatmeal;oat-flour;jaee",,common-food,,"Common grain. Naturally gluten-free but often cross-contaminated.",
+honey,"shahad;madhu",,common-food,,"Natural sweetener.",
+water,"aqua",,common-food,,"Universal solvent. No safety flag.",
+vegetable-oil,"sunflower-oil;canola-oil;rapeseed-oil;safflower-oil",,common-food,,"Generic vegetable oil. Specific oils vary in safety profile.",
+olive-oil,"extra-virgin-olive-oil;evoo",,common-food,,"Generally considered heart-healthy.",
+butter,"clarified-butter;makhan",,common-food,,"Dairy fat. Contains milk allergens; separately flagged.",
+yeast,"baker-s-yeast;saccharomyces-cerevisiae",,common-food,,"Leavening agent for breads. No additive safety flag.",
+spices,"masala;mixed-spices",,common-food,,"Mixed spices. Generally safe in culinary amounts.",

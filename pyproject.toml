@@ -15,6 +15,7 @@ dependencies = [
     "pydantic-settings>=2.14.1",
     "pydantic[email]>=2.13.4",
     "python-multipart>=0.0.30",
+    "rapidfuzz>=3.14.5",
     "sqlalchemy[asyncio]>=2.0.50",
     "streamlit>=1.58.0",
     "uvicorn[standard]>=0.48.0",
