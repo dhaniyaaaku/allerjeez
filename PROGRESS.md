@@ -42,6 +42,56 @@ For spec and rationale, see `PROJECT.md`. For code history, use `git log`.
 - Create initial models: `User`, `Scan`
 - Verify app in container can connect to Neon
 
+---
+
+## 2026-06-02 — Day 2 (DONE)
+
+### Status: complete. Database layer working, app containerized, both verified against Neon.
+
+### Done
+- Signed up for Neon Postgres free tier (project: `allerjeez`, region: AWS Singapore, Postgres 17)
+- Got direct connection string from Neon, saved to `.env` (gitignored)
+- Created `.env.example` placeholder for the repo
+- Restructured codebase: flat `main.py` -> `app/` package with `api/`, `models/`, `config.py`, `db.py`
+- Added deps via `uv add`: `sqlalchemy[asyncio]`, `asyncpg`, `greenlet`, `pgvector`
+- Built `app/config.py` (pydantic-settings reading `.env`)
+- Built `app/db.py` with async engine; small URL normalizer strips sync-driver-only params (`sslmode=require`) and translates SSL into asyncpg `connect_args`. Real bug encountered and fixed.
+- Built `app/models/base.py` (Base + TimestampMixin)
+- Built `User` model: email (unique, indexed) + allergies/dietary_preferences/conditions (ARRAY) + extra_profile (JSONB) + timestamps
+- Built `Scan` model: user_id FK with CASCADE delete + extracted_ingredients (JSONB) + safety_report (JSONB) + timestamps
+- Added `lifespan` context manager to `main.py` that runs `Base.metadata.create_all` at startup
+- Verified app starts cleanly and creates `users` + `scans` tables on Neon
+- Hit `ConnectionResetError 10054` on college Wi-Fi (port 5432 blocked). Diagnosed as campus firewall, fixed by installing Cloudflare WARP. WARP must be on when working from campus.
+- Wrote `Dockerfile` (single-stage, python:3.13-slim, deps-before-code caching pattern, EXPOSE 8000, host 0.0.0.0)
+- Wrote `.dockerignore` (excludes .venv, .git, .env, caches, docs)
+- Built image `allerjeez:dev` (135MB content) successfully
+- Ran container with `docker run --rm -p 8000:8000 --env-file .env allerjeez:dev`, confirmed Neon connection + endpoints work identically to direct uvicorn
+
+### Decisions made today
+- Connection string format: used Neon's direct connection (no `-pooler` toggle visible in UI). Can switch to pooled later if connection limits become an issue.
+- SSL handling: translate Neon's `sslmode=require` into asyncpg's `connect_args={"ssl": True}` instead of editing the URL in `.env`. URL stays in standard Postgres format; code adapts.
+- **Skipped `docker-compose.yml`** entirely. Single-container app, Postgres at Neon. Compose would have been ceremony with no benefit. Defensible answer in interviews: "considered it, single service, opted out."
+- Cloudflare WARP added to dev startup checklist (campus blocks port 5432)
+- Skipped Alembic per scope cut. `create_all` at startup is idempotent and sufficient for this schema.
+
+### Skipped (for now)
+- `docker-compose.yml` (per scope decision above)
+- Local Postgres in Docker (would need compose; not justified)
+
+### Blockers / open questions
+- None
+
+### Next (Day 3)
+- Build the `/users` endpoint: create/get user by email
+- Add `/users/me/profile` endpoint: update allergies/conditions/dietary_preferences
+- Wire up minimal Streamlit frontend: email "login" + profile setup form
+- Use HTTP cookie to remember email between requests (no real auth, just identity)
+
+### Notes
+- WARP is required on every dev session from campus Wi-Fi
+- Container size (135MB) is reasonable; can optimize with multi-stage later if needed (not now)
+- All Day 2 work pushed to GitHub: commits `cedd86c` (db layer) and the upcoming Docker commit
+
 ### Decisions made today
 - Per-user Docker install (solo developer use)
 - Project folder: `C:\Users\dhany\Projects\ingredient-safety`
