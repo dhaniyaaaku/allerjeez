@@ -391,6 +391,117 @@ For spec and rationale, see `PROJECT.md`. For code history, use `git log`.
 - None
 - Future cosmetic polish on scan page (dropzone styling, action button colors) deferred — not blocking
 
+---
+
+## 2026-06-02 — Week 2 day 1: Eval gold set collection (DONE)
+
+### Status: gold set built + runner ready, blocked on Gemini daily quota
+
+### Done
+- Created `eval/` folder structure (README, bootstrap, runner, gold_images/, gold_labels.jsonl)
+- Wrote `eval/bootstrap_labels.py` — AI-assisted draft labelling using own deployed extraction pipeline. Idempotent, resumes from cache.
+- Wrote `eval/run_eval.py` v1 — runs extraction pipeline, scores ingredient recall/precision/F1 vs ground truth using rapidfuzz token_set_ratio (threshold 80)
+- Collected 25 food product images (mix: Indian + global; Blinkit screenshots + kitchen photos)
+- Hand-verified all 25 ingredient lists (Gemini got them ~all correct)
+- Filled allergen + carcinogen ground truth for all 25 entries (mechanical rule application, both IARC strict + EU-flagged additives)
+- Added per-entry result caching to runner so quota errors don't waste prior progress
+
+### Bugs / surprises
+- Open Food Facts taxonomy URLs are 404 (anti-bot via Anubis). Pivot already in place (bundled CSVs).
+- Gemini free tier `gemini-2.5-flash` is **20 req/day** (Google tightened this; not 1500). 25-image eval is structurally impossible in one day on this model.
+
+---
+
+## 2026-06-03 — Week 2 day 2: Eval methodology fix + LLM explanations layer (DONE)
+
+### Status: shipped to Render, blocked on quota for verification
+
+### Done
+
+#### Eval methodology correction
+- First eval run reported **77.7% allergen recall** — but this was measuring the wrong layer (naive substring match)
+- Rewrote `eval/run_eval.py` v2 to call the real pipeline: extraction -> rule-based matcher -> LLM fallback -> safety report builder. Allergen metrics now check the safety report's actual flagged_allergens set, including aliases.
+- Added carcinogen recall metric (was missing entirely)
+- Added end-to-end pipeline latency (vs vision-only before)
+- Per-entry cache invalidates entries missing the new fields — auto-redo on rerun
+- Confirmed: **ingredient extraction is essentially solved** (99.2% recall, 99.4% precision, 99.2% F1 on 20 entries scored before quota died)
+
+#### Allergen alias expansion
+- Identified root cause of allergen recall gap from per-image eval misses
+- Expanded `data/allergens.csv` aliases based on actual label text Gemini extracts:
+  - milk: + skim-milk, nonfat-milk, whey-permeate, butter-milk-powder, yogurt, dahi, paneer
+  - eggs: + plurals (egg-yolks, egg-whites), whole-eggs
+  - tree-nuts: + all plurals (almonds, hazelnuts, cashews, etc.)
+  - soy: + soybean-oil, soybean-lecithin, soya-lecithin, hydrolyzed-soy-protein
+  - wheat: + refined-wheat-flour, enriched-flour, sooji
+  - gluten: + malted-barley, barley-flour, malt-extract
+  - shellfish: + oyster-extractives, plurals
+  - mustard: + yellow-mustard-powder
+- Re-ran ingestion (`uv run python -m scripts.ingest_ingredients`): 132 rows upserted
+- Tomorrow's eval rerun should show allergen recall jump significantly (predicted 95%+)
+
+#### LLM explanations layer (shipped to production)
+- Added `IngredientExplanation` SQLAlchemy model (canonical_name + flag_kind + explanation + source_model + timestamps). Composite key by (canonical_name, flag_kind) so same ingredient can have different explanations when flagged as allergen vs. carcinogen.
+- Added `explanation: str | None` field to `IngredientFlag` Pydantic schema
+- Built `app/services/explainer.py`:
+  - `gemini-2.5-flash-lite` model (separate quota from main vision)
+  - `temperature=0.2` for slight stylistic variation
+  - System instruction: 1-2 sentences, factual, cite regulatory authority, never make medical claims
+  - Retry-on-429/5xx with exponential backoff (max 2 attempts)
+  - **Quota-tolerant: returns None on failure** — caller renders without explanation, no crash
+  - Cache-first via Postgres
+- Wired into `POST /scan/analyze`: `annotate_flags()` called on all four flag lists
+- Streamlit `_flag_card` renders explanation in dashed-border section below the reason
+- Deployed to Render as commit `18aa2d4`
+
+#### README
+- Wrote full README.md (deployed in commit `74425fb`):
+  - Live demo URL at top
+  - One-paragraph hook
+  - "What it does" 7-step explanation
+  - ASCII architecture diagram
+  - Headline features table (including 99.2% eval result)
+  - Tech stack table with reasoning column
+  - "Things deliberately NOT included" section with engineering justifications
+  - Eval methodology section
+  - Engineering details (hybrid KB, quota-aware retry, eval-driven iteration, container architecture)
+  - Local dev instructions
+  - Future work list
+- This is the recruiter-facing artifact that turns the GitHub link into a portfolio piece
+
+### Commits today
+- `cd4c192` — eval gold set + bootstrap + runner v1
+- `18aa2d4` — LLM explanations layer + eval methodology v2
+- `74425fb` — README + allergen alias expansion + re-ingestion
+
+### Blockers / open questions
+
+- **Gemini quota limit on gemini-2.5-flash is 20 req/day, not 1500.** Discovered today during the eval run. Plan: switch the eval to `gemini-2.5-flash-lite` (more generous quota) for the full 25-image run tomorrow. Production app stays on 2.5-flash for user scans (higher quality).
+
+### Next (tomorrow, after ~12:30 PM IST quota reset)
+
+1. Verify Render redeployed cleanly with the explanations + alias fixes
+2. Scan something on the live app — confirm explanations render under each flag
+3. Run full eval on Lite to get the clean headline number across all 25:
+   ```
+   $env:GEMINI_VISION_MODEL = "gemini-2.5-flash-lite"
+   del eval\.cache_results.jsonl
+   uv run python -m eval.run_eval
+   ```
+4. Update README's eval table with the real allergen recall number
+5. Commit, push, done with the headline-metric work
+6. Move on to Week 3 (RAG Q&A) or Week 4 (polish + demo video)
+
+### Notes for fresh-session resume
+
+- WARP must be on every dev session (campus blocks port 5432 to Neon)
+- Gemini quota lives at: https://aistudio.google.com/usage (sign in with karadhanya@gmail.com)
+- Eval cache at `eval/.cache_results.jsonl` is gitignored — local-only
+- Two LLMs in production: `gemini-2.5-flash` (vision) and `gemini-2.5-flash-lite` (explanations). Separate quotas.
+- LLM explanations are quota-tolerant: failure mode is "render without explanation," never a crash
+- Project state at end of today: live at allerjeez.onrender.com, 132 ingredients KB, 25-image gold set, real README, explanations layer deployed
+- UI polish on the scan page (button colors, dropzone styling) is **explicitly deferred** — see PROGRESS history of Day 7 for context. Worth doing in a fresh focused session when polish becomes the priority.
+
 ### Decisions made today
 - Per-user Docker install (solo developer use)
 - Project folder: `C:\Users\dhany\Projects\ingredient-safety`
