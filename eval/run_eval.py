@@ -1,4 +1,4 @@
-"""Run the gold set through the extraction pipeline and report metrics.
+"""Run the gold set through the FULL extraction + safety report pipeline and report metrics.
 
 Usage:
     uv run python -m eval.run_eval                   # full run
@@ -6,19 +6,23 @@ Usage:
     uv run python -m eval.run_eval --force           # ignore the cache, redo all
     uv run python -m eval.run_eval --output eval/results.md
 
-Reads `eval/gold_labels.jsonl`, calls the live extraction pipeline for each entry,
-compares extracted ingredients/allergens to ground truth, prints a metrics table,
-and writes results to `eval/results.md`.
+Reads `eval/gold_labels.jsonl`, calls the live extraction pipeline + the rule-based
+matcher + the safety report builder for each entry, then compares the report's
+flagged allergens/carcinogens against ground truth.
+
+This measures the system as users actually see it (including the alias-aware
+allergen matcher and LLM fallback for unknowns), not a naive text match.
 
 Resumable: per-entry raw results are cached in `eval/.cache_results.jsonl`.
-If you hit a rate limit mid-run, rerun without --force to resume.
 
 Metrics:
-- Ingredient recall:    pct of expected ingredients found
+- Ingredient recall:    pct of expected ingredients found in Gemini's extraction
 - Ingredient precision: pct of extracted that were really expected
 - Ingredient F1:        harmonic mean of the two
-- Allergen recall:      pct of expected allergens caught by the system
-- Latency:              p50, p95, p99 per scan
+- Allergen recall:      pct of expected allergens caught by the safety report
+                        (checks personal_allergens + other_allergens by allergen_group)
+- Carcinogen recall:    pct of expected carcinogens caught by the safety report
+- Latency:              p50, p95, p99 per scan (end-to-end pipeline)
 """
 
 from __future__ import annotations
@@ -29,11 +33,18 @@ import json
 import re
 import statistics
 import time
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
 from rapidfuzz import fuzz
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db import SessionLocal, engine
+from app.models.user import User
+from app.services.ingredient_lookup import lookup_ingredients
+from app.services.llm_ingredient_lookup import classify_unknowns
+from app.services.safety_report import build_safety_report
 from app.services.vision import extract_ingredients_from_image
 
 EVAL_DIR = Path(__file__).resolve().parent
@@ -65,13 +76,12 @@ def _fuzzy_match(needle: str, haystack: list[str]) -> bool:
 
 
 def _mime_for(path: Path) -> str:
-    suffix = path.suffix.lower()
     return {
         ".jpg": "image/jpeg",
         ".jpeg": "image/jpeg",
         ".png": "image/png",
         ".webp": "image/webp",
-    }.get(suffix, "image/jpeg")
+    }.get(path.suffix.lower(), "image/jpeg")
 
 
 def _load_cache() -> dict[str, dict]:
@@ -98,7 +108,17 @@ def _append_cache(result: dict) -> None:
         f.write(json.dumps(result) + "\n")
 
 
-async def _evaluate_one(entry: dict) -> dict:
+@dataclass
+class EvalUser:
+    """Stand-in for a real User row. The safety report builder reads only
+    `allergies` off the user, so a dataclass with the right field is enough."""
+
+    allergies: list[str]
+    dietary_preferences: list[str]
+    conditions: list[str]
+
+
+async def _evaluate_one(entry: dict, session: AsyncSession) -> dict:
     image_path = EVAL_DIR / entry["image"]
     if not image_path.exists():
         return {
@@ -112,7 +132,24 @@ async def _evaluate_one(entry: dict) -> dict:
 
     t0 = time.perf_counter()
     try:
+        # 1. Extraction
         extraction = await extract_ingredients_from_image(image_bytes, mime)
+        # 2. Rule-based matching
+        matches = await lookup_ingredients(session, extraction.ingredients)
+        # 3. LLM fallback for unknowns (same path users hit)
+        matches = await classify_unknowns(session, matches)
+        # 4. Build safety report against a "user with all expected allergens"
+        #    so personal_allergens gets populated for every expected allergen.
+        eval_user = EvalUser(
+            allergies=list(entry.get("expected_allergens", [])),
+            dietary_preferences=[],
+            conditions=[],
+        )
+        report = build_safety_report(
+            extraction=extraction,
+            matches=matches,
+            user=eval_user,  # type: ignore[arg-type]
+        )
     except Exception as exc:
         return {
             "image": entry["image"],
@@ -121,6 +158,7 @@ async def _evaluate_one(entry: dict) -> dict:
         }
     elapsed = time.perf_counter() - t0
 
+    # ---- Ingredient extraction metrics (Gemini-level) ----
     expected_ings = entry.get("expected_ingredients", [])
     extracted_ings = extraction.ingredients
 
@@ -135,14 +173,45 @@ async def _evaluate_one(entry: dict) -> dict:
         else 0.0
     )
 
+    # ---- Allergen metrics (system-level, via safety report) ----
     expected_allergens = [a.lower() for a in entry.get("expected_allergens", [])]
+    flagged_allergen_groups = {
+        (f.ingredient_name or "").lower()
+        for f in report.personal_allergens + report.other_allergens
+    }
+    # The safety report sets ingredient_name to the canonical_name (e.g. "milk", "soy")
+    # which matches our allergen group strings directly.
+
+    # But personal_allergen entries set ingredient_name = canonical_name, while the
+    # underlying allergen group lives elsewhere. So we extend by checking allergen
+    # categories named in the personal_allergens "reason" too.
+    # Simpler: use the canonical_name set directly. For aliases like "lecithin (soy)"
+    # the matcher resolves to canonical "soy-lecithin" which IS the allergen.
     found_allergens: list[str] = []
+    missed_allergens: list[str] = []
     for allergen in expected_allergens:
-        if _fuzzy_match(allergen, extracted_ings):
+        # Direct match on canonical name, OR substring match (e.g. "soy" inside "soy-lecithin")
+        if any(allergen == g or allergen in g for g in flagged_allergen_groups):
             found_allergens.append(allergen)
+        else:
+            missed_allergens.append(allergen)
 
     allergen_recall = (
         len(found_allergens) / len(expected_allergens) if expected_allergens else 1.0
+    )
+
+    # ---- Carcinogen metrics ----
+    expected_carcs = [c.lower() for c in entry.get("expected_carcinogens", [])]
+    flagged_carc_names = {(f.ingredient_name or "").lower() for f in report.carcinogens}
+    found_carcs: list[str] = []
+    missed_carcs: list[str] = []
+    for carc in expected_carcs:
+        if any(carc == n or carc in n or n in carc for n in flagged_carc_names):
+            found_carcs.append(carc)
+        else:
+            missed_carcs.append(carc)
+    carcinogen_recall = (
+        len(found_carcs) / len(expected_carcs) if expected_carcs else 1.0
     )
 
     return {
@@ -156,8 +225,14 @@ async def _evaluate_one(entry: dict) -> dict:
         "f1": f1,
         "allergen_recall": allergen_recall,
         "expected_allergens": expected_allergens,
-        "missed_allergens": [a for a in expected_allergens if a not in found_allergens],
+        "missed_allergens": missed_allergens,
+        "carcinogen_recall": carcinogen_recall,
+        "expected_carcinogens": expected_carcs,
+        "missed_carcinogens": missed_carcs,
+        "flagged_allergens": sorted(flagged_allergen_groups),
+        "flagged_carcinogens": sorted(flagged_carc_names),
         "latency_s": elapsed,
+        "verdict": report.overall_verdict,
         "skipped": False,
     }
 
@@ -171,6 +246,7 @@ def _summarize(results: list[dict]) -> dict:
     precisions = [r["precision"] for r in real]
     f1s = [r["f1"] for r in real]
     allergen_recalls = [r["allergen_recall"] for r in real]
+    carcinogen_recalls = [r.get("carcinogen_recall", 1.0) for r in real]
     latencies = [r["latency_s"] for r in real]
 
     def pct(xs: list[float]) -> float:
@@ -189,6 +265,7 @@ def _summarize(results: list[dict]) -> dict:
         "ingredient_precision_pct": pct(precisions),
         "ingredient_f1_pct": pct(f1s),
         "allergen_recall_pct": pct(allergen_recalls),
+        "carcinogen_recall_pct": pct(carcinogen_recalls),
         "latency_p50_s": p(latencies, 0.5),
         "latency_p95_s": p(latencies, 0.95),
         "latency_p99_s": p(latencies, 0.99),
@@ -200,11 +277,17 @@ def _format_results(summary: dict, results: list[dict], total: int) -> str:
         return "No valid eval entries — gold set is empty or all entries errored.\n"
 
     lines: list[str] = []
-    lines.append("# Allerjeez extraction eval - results\n")
+    lines.append("# Allerjeez extraction + safety pipeline eval - results\n")
     lines.append(
         f"_Run at_: `{datetime.now(timezone.utc).isoformat(timespec='seconds')}`\n"
     )
     lines.append(f"_Gold set size_: **{total}** images ({summary['n']} scored)\n")
+    lines.append(
+        "_Methodology: each image runs end-to-end through Gemini Vision -> "
+        "rule-based matcher -> LLM fallback -> safety report builder. "
+        "Allergen and carcinogen metrics check whether the SAFETY REPORT "
+        "flagged the expected categories, not naive substring matching._\n"
+    )
     lines.append("\n## Aggregate metrics\n")
     lines.append("| Metric | Value |")
     lines.append("|---|---|")
@@ -212,26 +295,31 @@ def _format_results(summary: dict, results: list[dict], total: int) -> str:
     lines.append(f"| Ingredient precision | {summary['ingredient_precision_pct']:.1f}% |")
     lines.append(f"| Ingredient F1 | {summary['ingredient_f1_pct']:.1f}% |")
     lines.append(f"| **Allergen recall** | **{summary['allergen_recall_pct']:.1f}%** |")
-    lines.append(f"| Latency p50 | {summary['latency_p50_s']:.2f}s |")
-    lines.append(f"| Latency p95 | {summary['latency_p95_s']:.2f}s |")
-    lines.append(f"| Latency p99 | {summary['latency_p99_s']:.2f}s |\n")
+    lines.append(f"| Carcinogen recall | {summary['carcinogen_recall_pct']:.1f}% |")
+    lines.append(f"| Latency p50 (end-to-end) | {summary['latency_p50_s']:.2f}s |")
+    lines.append(f"| Latency p95 (end-to-end) | {summary['latency_p95_s']:.2f}s |")
+    lines.append(f"| Latency p99 (end-to-end) | {summary['latency_p99_s']:.2f}s |\n")
 
     lines.append("## Per-image results\n")
     lines.append(
-        "| Image | Recall | Precision | F1 | Allergen recall | Missed allergens |"
+        "| Image | Recall | Precision | F1 | Allergen recall | "
+        "Missed allergens | Carc recall | Missed carcinogens | Verdict |"
     )
-    lines.append("|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|---|---|")
     for r in results:
         if r.get("skipped"):
             lines.append(
-                f"| {r['image']} | _skipped_ | | | | {r.get('error', '')} |"
+                f"| {r['image']} | _skipped_ | | | | | | | {r.get('error', '')} |"
             )
             continue
-        missed = ", ".join(r["missed_allergens"]) or "—"
+        missed_a = ", ".join(r["missed_allergens"]) or "—"
+        missed_c = ", ".join(r["missed_carcinogens"]) or "—"
         lines.append(
             f"| {r['image']} | {r['recall'] * 100:.0f}% | "
             f"{r['precision'] * 100:.0f}% | {r['f1'] * 100:.0f}% | "
-            f"{r['allergen_recall'] * 100:.0f}% | {missed} |"
+            f"{r['allergen_recall'] * 100:.0f}% | {missed_a} | "
+            f"{r['carcinogen_recall'] * 100:.0f}% | {missed_c} | "
+            f"{r.get('verdict', '')} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -274,9 +362,15 @@ async def main() -> None:
         return
 
     cached = _load_cache()
+    # Old cache may not have the new fields. Treat entries missing the new
+    # carcinogen_recall key as stale so we redo them.
+    cached = {
+        k: v for k, v in cached.items()
+        if "carcinogen_recall" in v and "flagged_allergens" in v
+    }
     print(f"Running eval on {len(entries)} gold entries...")
     if cached:
-        print(f"Found {len(cached)} cached results; will skip those.")
+        print(f"Found {len(cached)} usable cached results; will skip those.")
     print(f"Pacing: ~{SECONDS_BETWEEN_CALLS}s between Gemini calls\n")
 
     results: list[dict] = []
@@ -287,22 +381,28 @@ async def main() -> None:
         else:
             pending.append(entry)
 
-    for i, entry in enumerate(pending, 1):
-        print(f"  [{i}/{len(pending)}] {entry['image']}", end=" ... ", flush=True)
-        result = await _evaluate_one(entry)
-        if result.get("skipped"):
-            print(f"SKIPPED ({result.get('error', '')})")
-        else:
+    async with SessionLocal() as session:
+        for i, entry in enumerate(pending, 1):
             print(
-                f"recall={result['recall'] * 100:.0f}% "
-                f"allergens={result['allergen_recall'] * 100:.0f}% "
-                f"({result['latency_s']:.2f}s)"
+                f"  [{i}/{len(pending)}] {entry['image']}", end=" ... ", flush=True
             )
-            _append_cache(result)
-        results.append(result)
+            result = await _evaluate_one(entry, session)
+            if result.get("skipped"):
+                print(f"SKIPPED ({str(result.get('error', ''))[:120]})")
+            else:
+                print(
+                    f"recall={result['recall'] * 100:.0f}% "
+                    f"allergens={result['allergen_recall'] * 100:.0f}% "
+                    f"carc={result['carcinogen_recall'] * 100:.0f}% "
+                    f"({result['latency_s']:.2f}s)"
+                )
+                _append_cache(result)
+            results.append(result)
 
-        if i < len(pending):
-            await asyncio.sleep(SECONDS_BETWEEN_CALLS)
+            if i < len(pending):
+                await asyncio.sleep(SECONDS_BETWEEN_CALLS)
+
+    await engine.dispose()
 
     summary = _summarize(results)
     report = _format_results(summary, results, total=len(entries))

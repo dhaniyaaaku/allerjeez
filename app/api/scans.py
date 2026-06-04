@@ -13,6 +13,7 @@ from app.models.scan import Scan
 from app.models.user import User
 from app.schemas.safety_report import SafetyReport
 from app.schemas.vision import ExtractedIngredients
+from app.services.explainer import annotate_flags
 from app.services.ingredient_lookup import lookup_ingredients
 from app.services.llm_ingredient_lookup import classify_unknowns
 from app.services.safety_report import build_safety_report
@@ -130,6 +131,16 @@ async def analyze_upload(
     matches = await lookup_ingredients(session, extracted.ingredients)
     matches = await classify_unknowns(session, matches)
     report = build_safety_report(extraction=extracted, matches=matches, user=user)
+
+    # Plain-English explanations for each flag — cache-first, gracefully skipped
+    # when Gemini quota is exhausted (flags just render without an explanation).
+    for flag_list in (
+        report.personal_allergens,
+        report.other_allergens,
+        report.carcinogens,
+        report.controversial_additives,
+    ):
+        await annotate_flags(session, flag_list)
 
     scan = Scan(
         user_id=user.id,

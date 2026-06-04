@@ -331,6 +331,14 @@ section[data-testid="stSidebar"] {
 .report-card .ing-reason {
     margin-top: 4px;
 }
+.report-card .ing-explain {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px dashed #1a1a1a;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: #1a1a1a;
+}
 
 /* expanders */
 .streamlit-expanderHeader {
@@ -841,11 +849,16 @@ def render_verdict(verdict: str) -> None:
 
 
 def _flag_card(flag: dict, color_class: str) -> str:
+    explanation = (flag.get("explanation") or "").strip()
+    explanation_html = (
+        f"<div class='ing-explain'>{explanation}</div>" if explanation else ""
+    )
     return (
         f"<div class='report-card {color_class}'>"
         f"<div class='ing-name'>{flag['ingredient_name']}</div>"
         f"<div class='ing-raw'>label said: {flag['raw_text_from_label']}</div>"
         f"<div class='ing-reason'>{flag['reason']}</div>"
+        f"{explanation_html}"
         f"</div>"
     )
 
